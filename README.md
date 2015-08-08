@@ -1,4 +1,4 @@
-# ObiectumScanner
+# ObiectumTokenizer
 
 Just a small library for tokenizing strings.
 
