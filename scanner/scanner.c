@@ -12,6 +12,7 @@ static void obscanner_init_def(obscanner_scanner_t *scanner) {
     scanner->single_line_comment_mark_n   = 0;
     scanner->single_line_comment_marks    = NULL;
     scanner->multiple_line_comment_mark_n = 0;
+    scanner->multiple_line_comment_mark_l = NULL;
     scanner->multiple_line_comment_marks  = NULL;
     
     scanner->string_open = false;
@@ -39,6 +40,14 @@ int obscanner_add_comment_mark(obscanner_scanner_t *scanner, bool multiline, con
     
     (*marks)[*mark_n - 1] = mark;
     
+    if (multiline) {
+        scanner->multiple_line_comment_mark_l = reallocf(scanner->multiple_line_comment_mark_l, *mark_n * sizeof(size_t));
+        if (!scanner->multiple_line_comment_mark_l)
+            return -1;
+        
+        scanner->multiple_line_comment_mark_l[*mark_n - 1] = strlen(mark);
+    }
+    
     return 0;
 }
 
@@ -56,9 +65,9 @@ static int obscanner_comment_type(obscanner_scanner_t *scanner, size_t *mark_ind
     return -1;
 }
 
-static void obscanner_find_ch(obscanner_scanner_t *scanner) {
+static int obscanner_find_ch(obscanner_scanner_t *scanner) {
     if (scanner->string_open)
-        return;
+        return 0;
     
     while (*scanner->str) {
         size_t cmt_mark_index;
@@ -68,14 +77,34 @@ static void obscanner_find_ch(obscanner_scanner_t *scanner) {
                 scanner->str = memchr(scanner->str, '\n', scanner->str_last - scanner->str);
                 if (!scanner->str)
                     scanner->str = scanner->str_last;
+                
+                scanner->pos.line++;
+                scanner->pos.col = 1;
             } else {
-                scanner->str = strnstr(scanner->str,
-                                       scanner->multiple_line_comment_marks[cmt_mark_index + 1],
-                                       scanner->str_last - scanner->str);
-                if (!scanner->str)
-                    scanner->str = scanner->str_last;
-                else
-                    scanner->str += strlen(scanner->multiple_line_comment_marks[cmt_mark_index + 1]);
+                cmt_mark_index++;
+                
+                size_t     lf_n;
+                const char *last_lf = scanner->str;
+                while (scanner->str < scanner->str_last) {
+                    if (*scanner->str == '\n') {
+                        scanner->pos.col = 0;
+                        lf_n++;
+                        last_lf = scanner->str;
+                    } else if (!strncmp(scanner->str,
+                                 scanner->multiple_line_comment_marks[cmt_mark_index],
+                                 scanner->multiple_line_comment_mark_l[cmt_mark_index])) {
+                        scanner->str += scanner->multiple_line_comment_mark_l[cmt_mark_index];
+                        break;
+                    }
+                    
+                    scanner->str++;
+                }
+                
+                scanner->pos.line += lf_n;
+                while (last_lf < scanner->str) {
+                    scanner->pos.col++;
+                    OBSCANNER_UNICHAR_NEXT(last_lf, return -1;)
+                }
             }
         }
         
@@ -90,6 +119,8 @@ static void obscanner_find_ch(obscanner_scanner_t *scanner) {
         
         scanner->str++;
     }
+    
+    return 0;
 }
 
 int obscanner_get(obscanner_scanner_t *scanner, obscanner_char_t *ch) {

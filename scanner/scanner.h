@@ -18,6 +18,7 @@ typedef struct {
     size_t     single_line_comment_mark_n;
     const char **single_line_comment_marks;
     size_t     multiple_line_comment_mark_n;
+    size_t     *multiple_line_comment_mark_l;
     const char **multiple_line_comment_marks;
     
     bool string_open;
