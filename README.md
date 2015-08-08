@@ -37,6 +37,6 @@ while (!obtokenizer_get(&tokenizer, &token)) {
 Output:
 <pre><code>$ ./test
 1:1: abc
-1:6: def
-1:9: ,
-1:10: 123</code></pre>
+5:22: def
+5:25: ,
+5:26: 123</code></pre>
