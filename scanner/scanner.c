@@ -83,7 +83,7 @@ static int obscanner_find_ch(obscanner_scanner_t *scanner) {
             } else {
                 cmt_mark_index++;
                 
-                size_t     lf_n;
+                size_t     lf_n = 0;
                 const char *last_lf = scanner->str;
                 while (scanner->str < scanner->str_last) {
                     if (*scanner->str == '\n') {

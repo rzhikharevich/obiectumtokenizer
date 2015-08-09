@@ -14,7 +14,7 @@ Just a small library for tokenizing strings.
 
 <pre><code>obtokenizer_tokenizer_t tokenizer;
 if (obtokenizer_init(&tokenizer, "abc /* comment №1 */ def,123 // №2") ||
-    obtokenizer_add_spec_char(&tokenizer, ',')                     || // Count commas as separate tokens.
+    obtokenizer_add_spec_char(&tokenizer, ',')                   || // Count commas as separate tokens.
     obscanner_add_comment_mark(&tokenizer.scanner, false, "//")  || // Enable C-style single-line comments.
     obscanner_add_comment_mark(&tokenizer.scanner, true,  "/*")  || // Enable C-style multi-
     obscanner_add_comment_mark(&tokenizer.scanner, true,  "*/")     // line comments.
@@ -37,6 +37,6 @@ while (!obtokenizer_get(&tokenizer, &token)) {
 Output:
 <pre><code>$ ./test
 1:1: abc
-5:22: def
-5:25: ,
-5:26: 123</code></pre>
+1:22: def
+1:25: ,
+1:26: 123</code></pre>
